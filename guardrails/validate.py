@@ -15,9 +15,9 @@ BASE_URL = "http://localhost:8000/v1"
 MODEL = "default"
 
 
-def generate(prompt: str, client: httpx.Client, seed: int = 42) -> str:
+def generate(prompt: str, client: httpx.Client, seed: int = 42, base_url: str = BASE_URL) -> str:
     resp = client.post(
-        f"{BASE_URL}/completions",
+        f"{base_url}/completions",
         json={
             "model": MODEL,
             "prompt": prompt,
@@ -32,9 +32,9 @@ def generate(prompt: str, client: httpx.Client, seed: int = 42) -> str:
     return resp.json()["choices"][0]["text"].strip()
 
 
-def check_determinism(prompt: str, runs: int = 3) -> bool:
+def check_determinism(prompt: str, runs: int = 3, base_url: str = BASE_URL) -> bool:
     with httpx.Client() as client:
-        outputs = [generate(prompt, client) for _ in range(runs)]
+        outputs = [generate(prompt, client, base_url=base_url) for _ in range(runs)]
 
     all_same = len(set(outputs)) == 1
     print(f"Prompt: {prompt!r}")
@@ -91,9 +91,6 @@ def main():
     parser.add_argument("--skip-validation", action="store_true")
     args = parser.parse_args()
 
-    global BASE_URL
-    BASE_URL = args.base_url
-
     if not args.skip_determinism:
         print("=== Determinism Check ===")
         prompts = [
@@ -101,7 +98,7 @@ def main():
             "What is 2 + 2?",
             "Name a planet in the solar system.",
         ]
-        results = [check_determinism(p, args.runs) for p in prompts]
+        results = [check_determinism(p, args.runs, base_url=args.base_url) for p in prompts]
         if not all(results):
             print("WARNING: nondeterminism detected. vLLM may not support seed on all backends.\n")
 
