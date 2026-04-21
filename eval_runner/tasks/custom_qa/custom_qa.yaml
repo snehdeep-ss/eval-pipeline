@@ -1,0 +1,17 @@
+task: custom_qa
+dataset_path: json
+dataset_kwargs:
+  data_files:
+    test: data.jsonl
+test_split: test
+doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_target: "{{answer}}"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "\n"
+  max_gen_toks: 32

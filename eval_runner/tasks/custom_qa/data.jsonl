@@ -1,0 +1,10 @@
+{"question": "What is the time complexity of binary search?", "answer": "O(log n)"}
+{"question": "Which data structure uses LIFO order?", "answer": "stack"}
+{"question": "What does HTTP stand for?", "answer": "HyperText Transfer Protocol"}
+{"question": "What is the default port for HTTPS?", "answer": "443"}
+{"question": "What Python keyword is used to define a function?", "answer": "def"}
+{"question": "What is the base case in recursion?", "answer": "the condition that stops recursion"}
+{"question": "What does GPU stand for?", "answer": "Graphics Processing Unit"}
+{"question": "Which sorting algorithm has O(n log n) average complexity?", "answer": "merge sort"}
+{"question": "What is overfitting in machine learning?", "answer": "when a model performs well on training data but poorly on unseen data"}
+{"question": "What activation function outputs values between 0 and 1?", "answer": "sigmoid"}
