@@ -18,6 +18,18 @@ COT_INSTRUCTION = (
     "For each question, reason step by step, then output ONLY the answer letter on the last line as 'Answer: X'."
 )
 
+ENSEMBLE_INSTRUCTIONS = [
+    COT_INSTRUCTION,
+    (
+        "You are a science teacher. Read the question carefully, eliminate wrong answers, "
+        "then output ONLY the correct letter on the last line as 'Answer: X'."
+    ),
+    (
+        "Solve this science multiple-choice question. Think through each option, "
+        "then output ONLY the best answer letter on the last line as 'Answer: X'."
+    ),
+]
+
 _pool = None
 _vectorizer = None
 _pool_vecs = None
@@ -50,15 +62,17 @@ def format_example_block(ex: dict, include_cot: bool = True) -> str:
     return block
 
 
-def build_prompt(example: dict, k: int = 4, cot: bool = True) -> str:
+def build_prompt(example: dict, k: int = 4, cot: bool = True, instruction: str = None) -> str:
     shots = get_few_shots(example["question"], k=k)
     shot_text = "\n\n".join(format_example_block(s, include_cot=cot) for s in shots)
     query = f"Question: {example['question']}\n{example['options']}\n"
-    if cot:
-        query += "Let's think step by step."
-    else:
-        query += "Answer:"
-    return f"{COT_INSTRUCTION}\n\n{shot_text}\n\n{query}"
+    query += "Let's think step by step." if cot else "Answer:"
+    inst = instruction or COT_INSTRUCTION
+    return f"{inst}\n\n{shot_text}\n\n{query}"
+
+
+def build_ensemble_prompts(example: dict, k: int = 4) -> list[str]:
+    return [build_prompt(example, k=k, cot=True, instruction=inst) for inst in ENSEMBLE_INSTRUCTIONS]
 
 
 def extract_answer(text: str, valid_labels: list[str]) -> str | None:

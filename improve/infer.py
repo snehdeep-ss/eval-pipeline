@@ -14,7 +14,7 @@ from pathlib import Path
 import httpx
 from scipy import stats
 
-from optimize_prompt import build_prompt, extract_answer
+from optimize_prompt import build_prompt, build_ensemble_prompts, extract_answer
 
 BASE_URL = "http://localhost:8000/v1"
 MODEL = "default"
@@ -49,8 +49,11 @@ def run(examples, mode: str, client: httpx.Client, base_url: str) -> list[dict]:
             raw = generate(client, prompt, temperature=0.0, max_tokens=8, base_url=base_url)
             pred = extract_answer(raw, ex["labels"])
         else:
-            prompt = build_prompt(ex, k=4, cot=True)
-            raws = [generate(client, prompt, temperature=0.5, max_tokens=128, base_url=base_url) for _ in range(5)]
+            # self-consistency (k=5) across ensemble of 3 prompt phrasings = 15 total votes
+            prompts = build_ensemble_prompts(ex, k=4)
+            raws = []
+            for p in prompts:
+                raws += [generate(client, p, temperature=0.5, max_tokens=128, base_url=base_url) for _ in range(5)]
             answers = [extract_answer(r, ex["labels"]) for r in raws]
             pred = majority_vote(answers)
 
