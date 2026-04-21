@@ -6,14 +6,11 @@ dataset_kwargs:
 test_split: test
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}"
+process_results: !function custom_qa_utils.process_results
 metric_list:
-  - metric: exact_match
+  - metric: contains_match
     aggregation: mean
     higher_is_better: true
-    ignore_case: true
-    ignore_punctuation: true
-    regexes_to_ignore:
-      - "\\s+"
 output_type: generate_until
 generation_kwargs:
   until:
