@@ -26,9 +26,9 @@ SEED = 42
 random.seed(SEED)
 
 
-def generate(client: httpx.Client, prompt: str, temperature: float, max_tokens: int) -> str:
+def generate(client: httpx.Client, prompt: str, temperature: float, max_tokens: int, base_url: str) -> str:
     resp = client.post(
-        f"{BASE_URL}/completions",
+        f"{base_url}/completions",
         json={"model": MODEL, "prompt": prompt, "max_tokens": max_tokens, "temperature": temperature, "top_p": 1.0, "seed": SEED},
         timeout=120,
     )
@@ -36,22 +36,21 @@ def generate(client: httpx.Client, prompt: str, temperature: float, max_tokens: 
     return resp.json()["choices"][0]["text"]
 
 
-def majority_vote(answers: list[str | None]) -> str | None:
+def majority_vote(answers: list) -> str | None:
     valid = [a for a in answers if a]
     return Counter(valid).most_common(1)[0][0] if valid else None
 
 
-def run(examples, mode: str, client: httpx.Client) -> list[dict]:
+def run(examples, mode: str, client: httpx.Client, base_url: str) -> list[dict]:
     results = []
     for ex in examples:
         if mode == "baseline":
             prompt = f"Question: {ex['question']}\n{ex['options']}\nAnswer:"
-            raw = generate(client, prompt, temperature=0.0, max_tokens=8)
+            raw = generate(client, prompt, temperature=0.0, max_tokens=8, base_url=base_url)
             pred = extract_answer(raw, ex["labels"])
         else:
             prompt = build_prompt(ex, k=4, cot=True)
-            # self-consistency: 5 samples, majority vote
-            raws = [generate(client, prompt, temperature=0.5, max_tokens=128) for _ in range(5)]
+            raws = [generate(client, prompt, temperature=0.5, max_tokens=128, base_url=base_url) for _ in range(5)]
             answers = [extract_answer(r, ex["labels"]) for r in raws]
             pred = majority_vote(answers)
 
@@ -78,15 +77,12 @@ def main():
     parser.add_argument("--base-url", default=BASE_URL)
     args = parser.parse_args()
 
-    global BASE_URL
-    BASE_URL = args.base_url
-
     examples = [json.loads(l) for l in DATA_PATH.read_text().splitlines() if l.strip()]
     if args.limit:
         examples = random.sample(examples, args.limit)
 
     with httpx.Client() as client:
-        results = run(examples, args.mode, client)
+        results = run(examples, args.mode, client, args.base_url)
 
     acc, ci = accuracy_ci(results)
     print(f"\nMode: {args.mode} | Accuracy: {acc:.4f} ± {ci:.4f} (95% CI) | n={len(results)}")
