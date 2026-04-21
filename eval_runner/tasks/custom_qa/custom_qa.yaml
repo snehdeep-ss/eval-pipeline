@@ -2,7 +2,7 @@ task: custom_qa
 dataset_path: json
 dataset_kwargs:
   data_files:
-    test: data.jsonl
+    test: tasks/custom_qa/data.jsonl
 test_split: test
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}"
