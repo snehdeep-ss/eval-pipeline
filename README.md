@@ -2,6 +2,13 @@
 
 vLLM inference server + lm-eval benchmarks + perf testing + inference-time improvements.
 
+## What I Learned
+
+- **Prompt ensembling was the key lift** — running 3 differently-phrased instructions and majority voting across 15 total samples pushed ARC-Challenge from +2% to +3%. Single-phrasing self-consistency plateaued earlier than expected.
+- **Batching the lm-eval wrapper mattered more than expected** — sending 32 prompts per request instead of 1 cut eval time by ~4x. The model was mostly idle between sequential requests without it.
+- **TTFT on H100 is remarkably stable** — 31ms regardless of prompt length. vLLM's paged attention absorbs context length differences almost entirely at the prefill stage.
+- **Exact match is a trap for open-ended tasks** — the model was often correct but scored 0 because of punctuation or extra words. Substring matching got custom_qa from 0% to 80% without changing the model or prompts at all.
+
 ## Setup
 
 ```bash
