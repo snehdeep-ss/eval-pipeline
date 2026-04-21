@@ -9,16 +9,18 @@ import json
 from pathlib import Path
 
 import lm_eval
-from lm_eval.models.utils import handle_stop_sequences
+from lm_eval.tasks import TaskManager
 
 from vllm_model import VLLMEndpointModel
 
 RESULTS_DIR = Path(__file__).parent / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
+TASKS_DIR = Path(__file__).parent / "tasks"
 
 
 def run(tasks, base_url, model, limit, num_fewshot):
     lm = VLLMEndpointModel(base_url=base_url, model=model)
+    task_manager = TaskManager(include_path=str(TASKS_DIR))
 
     results = lm_eval.simple_evaluate(
         model=lm,
@@ -26,6 +28,7 @@ def run(tasks, base_url, model, limit, num_fewshot):
         num_fewshot=num_fewshot,
         limit=limit,
         log_samples=True,
+        task_manager=task_manager,
     )
 
     out_path = RESULTS_DIR / "results.json"

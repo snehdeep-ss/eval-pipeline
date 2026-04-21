@@ -1,3 +1,5 @@
+.PHONY: serve client concurrent eval perf perf-long validate improve install
+
 serve:
 	python serve/serve.py
 
