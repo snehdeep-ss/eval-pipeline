@@ -33,7 +33,7 @@ LONG_PROMPTS = [
 ]
 
 
-async def single_request(client: httpx.AsyncClient, prompt: str, max_tokens: int, idx: int):
+async def single_request(client: httpx.AsyncClient, prompt: str, max_tokens: int, idx: int, base_url: str = BASE_URL):
     payload = {
         "model": MODEL,
         "messages": [{"role": "user", "content": prompt}],
@@ -46,7 +46,7 @@ async def single_request(client: httpx.AsyncClient, prompt: str, max_tokens: int
     ttft = None
     token_times = []
 
-    async with client.stream("POST", f"{BASE_URL}/chat/completions", json=payload, timeout=120) as resp:
+    async with client.stream("POST", f"{base_url}/chat/completions", json=payload, timeout=120) as resp:
         resp.raise_for_status()
         async for line in resp.aiter_lines():
             if not line or not line.startswith("data: "):
@@ -77,13 +77,12 @@ async def single_request(client: httpx.AsyncClient, prompt: str, max_tokens: int
     }
 
 
-async def run_load_test(prompts: list[str], concurrency: int, max_tokens: int):
-    results = []
+async def run_load_test(prompts: list[str], concurrency: int, max_tokens: int, base_url: str = BASE_URL):
     semaphore = asyncio.Semaphore(concurrency)
 
     async def bounded(client, prompt, idx):
         async with semaphore:
-            return await single_request(client, prompt, max_tokens, idx)
+            return await single_request(client, prompt, max_tokens, idx, base_url)
 
     async with httpx.AsyncClient() as client:
         tasks = [bounded(client, p, i) for i, p in enumerate(prompts)]
@@ -147,16 +146,13 @@ def main():
     parser.add_argument("--base-url", default=BASE_URL)
     args = parser.parse_args()
 
-    global BASE_URL
-    BASE_URL = args.base_url
-
     pool = LONG_PROMPTS if args.long else SHORT_PROMPTS
     prompts = (pool * (args.n // len(pool) + 1))[: args.n]
 
     label = f"{'long' if args.long else 'short'} prompts | concurrency={args.concurrency}"
     print(f"Running {args.n} requests ({label})")
 
-    results = asyncio.run(run_load_test(prompts, args.concurrency, args.max_tokens))
+    results = asyncio.run(run_load_test(prompts, args.concurrency, args.max_tokens, args.base_url))
 
     print_summary(results, label)
     try_gpu_util()
