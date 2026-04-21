@@ -3,8 +3,8 @@
 {"question": "What does HTTP stand for?", "answer": "HyperText Transfer Protocol"}
 {"question": "What is the default port for HTTPS?", "answer": "443"}
 {"question": "What Python keyword is used to define a function?", "answer": "def"}
-{"question": "What is the base case in recursion?", "answer": "the condition that stops recursion"}
 {"question": "What does GPU stand for?", "answer": "Graphics Processing Unit"}
-{"question": "Which sorting algorithm has O(n log n) average complexity?", "answer": "merge sort"}
-{"question": "What is overfitting in machine learning?", "answer": "when a model performs well on training data but poorly on unseen data"}
 {"question": "What activation function outputs values between 0 and 1?", "answer": "sigmoid"}
+{"question": "What is the name of the optimization algorithm that uses first and second moment estimates?", "answer": "Adam"}
+{"question": "What does SQL stand for?", "answer": "Structured Query Language"}
+{"question": "Which sorting algorithm has the best average time complexity?", "answer": "merge sort"}
