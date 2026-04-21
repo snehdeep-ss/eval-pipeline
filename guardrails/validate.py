@@ -59,9 +59,13 @@ def validate_custom_outputs(results_path: Path) -> None:
         return
 
     data = json.loads(results_path.read_text())
-    samples = data.get("custom_qa", {}).get("samples", [])
+    samples = data.get("custom_qa", {}).get("samples", data.get("samples", []))
     if not samples:
-        print("No custom_qa samples in results.json")
+        score = data.get("custom_qa", {}).get("contains_match,none")
+        if score is not None:
+            print(f"custom_qa contains_match score: {score:.4f} (from last eval run)")
+        else:
+            print("No custom_qa samples found — run: python eval_runner/run_eval.py --tasks custom_qa first")
         return
 
     passed = failed = 0
